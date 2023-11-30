@@ -66,6 +66,8 @@ export type QuaternionLike = {
   w: number;
 };
 
+export type AngleOrder = "XYZ" | "YXZ" | "ZXY" | "ZYX" | "YZX" | "XZY";
+
 export type NodeProperties = PixiProperties & Pixi3DProperties;
 
 export type PixiProperties = {
