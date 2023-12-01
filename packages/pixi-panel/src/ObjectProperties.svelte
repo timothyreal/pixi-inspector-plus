@@ -49,19 +49,28 @@
   }
 
   let euler = { x: 0, y: 0, z: 0 };
+  // NOTE: bandaid solution to setting y > 90 degrees. G
+  //  Getting euler angles from quaternion inverts the x and z rotation
+  let syncEuler = true;
+  const onSyncChange = (sync: boolean) => {
+    syncEuler = sync;
+  }
   $: if (
     container3D &&
     typeof props.quatW === "number" &&
     typeof props.quatX === "number" &&
     typeof props.quatY === "number" &&
-    typeof props.quatZ === "number"
+    typeof props.quatZ === "number" &&
+    typeof syncEuler === "boolean"
   ) {
-    euler = getEulerAngles({
-      x: props.quatX,
-      y: props.quatY,
-      z: props.quatZ,
-      w: props.quatW,
-    });
+    if (syncEuler) {
+      euler = getEulerAngles({
+        x: props.quatX,
+        y: props.quatY,
+        z: props.quatZ,
+        w: props.quatW,
+      });
+    }
   }
 
   $: onEulerChange = ({
@@ -70,6 +79,7 @@
     z = euler.z,
   }: Partial<PointLike3D>) => {
     euler = { x, y, z };
+    syncEuler = false;
     const quat = Quaternion.fromEuler(x, y, z);
     dispatch("change", { property: "quatX", value: quat.x });
     dispatch("change", { property: "quatY", value: quat.y });
@@ -134,6 +144,16 @@
           location="BOTTOM"
           on:change={(e) => onEulerChange({ z: e.detail })}
         />
+      </Property>
+
+      <Property>
+        <Checkbox
+          value={syncEuler}
+          hint="Sync with Euler to Quaternion"
+          on:change={(e) => onSyncChange(e.detail)}
+        >
+          Sync with Quaternion
+        </Checkbox>
       </Property>
 
       <Property label="Quaternion X" group>
