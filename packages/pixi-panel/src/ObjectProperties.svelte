@@ -7,7 +7,7 @@
   import Property from "blender-elements/src/Property/Property.svelte";
   import SelectMenu from "blender-elements/src/SelectMenu/SelectMenu.svelte";
   import type { NodeProperties, PointLike3D } from "./types";
-  import { between, getEulerAngles } from "./pixi-devtools/pixiDevToolsUtil";
+  import { getEulerAngles } from "./pixi-devtools/pixiDevToolsUtil";
 
   export let props: NodeProperties;
   export let expanded: Record<string, boolean>;
@@ -49,24 +49,6 @@
   }
 
   let euler = { x: 0, y: 0, z: 0 };
-  let initialLoadQuat = false;
-  $: if (
-    container3D &&
-    typeof props.quatW === "number" &&
-    typeof props.quatX === "number" &&
-    typeof props.quatY === "number" &&
-    typeof props.quatZ === "number" &&
-    initialLoadQuat === false
-  ) {
-    euler = getEulerAngles({
-      x: props.quatX,
-      y: props.quatY,
-      z: props.quatZ,
-      w: props.quatW,
-    });
-
-    initialLoadQuat = true;
-  }
   $: if (
     container3D &&
     typeof props.quatW === "number" &&
@@ -74,25 +56,12 @@
     typeof props.quatY === "number" &&
     typeof props.quatZ === "number"
   ) {
-    const rot = getEulerAngles({
+    euler = getEulerAngles({
       x: props.quatX,
       y: props.quatY,
       z: props.quatZ,
       w: props.quatW,
     });
-
-    // NOTE: bandiad solution to fix rotating y up to 90 inverts
-    euler = {
-      x: between(rot.x, euler.x - Number.EPSILON, euler.x + Number.EPSILON)
-        ? rot.x
-        : euler.x,
-      y: between(rot.y, euler.y - Number.EPSILON, euler.y + Number.EPSILON)
-        ? rot.y
-        : euler.y,
-      z: between(rot.z, euler.z - Number.EPSILON, euler.z + Number.EPSILON)
-        ? rot.z
-        : euler.z,
-    };
   }
 
   $: onEulerChange = ({
