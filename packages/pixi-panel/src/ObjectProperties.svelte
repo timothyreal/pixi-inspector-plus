@@ -51,7 +51,7 @@
   let euler = { x: 0, y: 0, z: 0 };
   // NOTE: bandaid solution to setting y > 90 degrees. G
   //  Getting euler angles from quaternion inverts the x and z rotation
-  let syncEuler = true;
+  $: syncEuler = container3D;
   const onSyncChange = (sync: boolean) => {
     syncEuler = sync;
   }
