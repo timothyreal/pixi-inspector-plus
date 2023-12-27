@@ -1,6 +1,9 @@
 import type { GameObjects } from "phaser";
 import type { DisplayObject, ICanvas, Matrix } from "pixi.js";
+
+import type { Camera, Matrix4x4 } from "pixi3d";
 import type { PixiDevtools, UniversalNode } from "../types";
+
 
 export default function pixiDevtoolsOverlay(devtools: PixiDevtools) {
   function position(
@@ -119,19 +122,22 @@ export default function pixiDevtoolsOverlay(devtools: PixiDevtools) {
     let throttle = 0;
     let raf: number | undefined;
 
+    function noOverlay(): void {
+      highlightEl.style.transform = "scale(0)";
+      anchorEl.style.transform = "scale(0)";
+    }
+
     function updateHighlight() {
       raf = requestAnimationFrame(updateHighlight);
       const node = devtools.selection.active();
 
       if (!node) {
-        highlightEl.style.transform = "scale(0)";
-        anchorEl.style.transform = "scale(0)";
+        noOverlay();
         return;
       }
       const parent = devtools.parentOf(node);
       if (!parent || (node as DisplayObject).visible === false) {
-        highlightEl.style.transform = "scale(0)";
-        anchorEl.style.transform = "scale(0)";
+        noOverlay();
         return;
       }
       if (throttle <= 0) {
@@ -142,6 +148,21 @@ export default function pixiDevtoolsOverlay(devtools: PixiDevtools) {
       }
       let size: { x: number; y: number; width: number; height: number };
       let m: Matrix | GameObjects.Components.TransformMatrix;
+      if ("z" in node && "worldTransform" in node && "rotationQuaternion" in node) {
+        const worldTransform = <Matrix4x4>node.worldTransform;
+        const { x, y, z } = worldTransform.position;
+        const renderer = devtools.renderer();
+        let anchorTransform = "scale(0)";
+        if (renderer) {
+          const camera = <Camera>(<any>renderer.plugins).camera;
+          const screenPos = camera.worldToScreen(x, y, z, undefined, camera.renderer.screen);
+          anchorTransform = `matrix(1, 0, 0, 1, 0, 0) translate(${screenPos.x}px, ${screenPos.y}px)`
+        }
+        
+        anchorEl.style.transform = anchorTransform;
+        highlightEl.style.transform = "scale(0)";
+        return;
+      }
       if ("getLocalBounds" in node) {
         size = node.getLocalBounds();
         m = node.worldTransform;
