@@ -151,10 +151,9 @@ export default function pixiDevtoolsOverlay(devtools: PixiDevtools) {
       if ("z" in node && "worldTransform" in node && "rotationQuaternion" in node) {
         const worldTransform = <Matrix4x4>node.worldTransform;
         const { x, y, z } = worldTransform.position;
-        const renderer = devtools.renderer();
         let anchorTransform = "scale(0)";
-        if (renderer) {
-          const camera = <Camera>(<any>renderer.plugins).camera;
+        const camera = <Camera>devtools.camera();
+        if (camera) {
           const screenPos = camera.worldToScreen(x, y, z, undefined, camera.renderer.screen);
           anchorTransform = `matrix(1, 0, 0, 1, 0, 0) translate(${screenPos.x}px, ${screenPos.y}px)`
         }

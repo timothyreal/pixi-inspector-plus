@@ -6,10 +6,13 @@ import {
   Application,
   Container,
   DisplayObject,
+  Renderer,
   Sprite,
   Texture,
 } from "pixi.js";
 import {
+  Camera,
+  CameraOrbitControl,
   Color,
   Container3D,
   Cubemap,
@@ -38,9 +41,21 @@ LightingEnvironment.main.imageBasedLighting = new ImageBasedLighting(
 );
 const box = Mesh3D.createCube();
 container3D.addChild(box);
-box.z = -5;
+container3D.z = -5;
 box.rotationQuaternion.setEulerAngles(45, 0, 10);
+const cameraControl = new CameraOrbitControl(canvas, new Camera(<Renderer>app.renderer));
+const camera = Camera.main;
 
+const allowCameraControl = (allow = true) => {
+  if (allow) {
+    Camera.main = cameraControl.camera;
+  
+  } else {
+    Camera.main = camera;
+  }
+  (globalThis as any).__PIXI_3D_CAMERA__ = Camera.main; // eslint-disable-line
+}
+(globalThis as any).allowCameraControl = allowCameraControl;
 app.stage.addChild(container, <DisplayObject>(<unknown>container3D));
 
 const texture = Texture.from(
@@ -68,6 +83,7 @@ app.ticker.add((delta) => {
 const exposeApp = true;
 if (exposeApp) {
   (globalThis as any).__PIXI_APP__ = app; // eslint-disable-line
+  (globalThis as any).__PIXI_3D_CAMERA__ = Camera.main; // eslint-disable-line
 } else {
   (globalThis as any).__PIXI_STAGE__ = app.stage; // eslint-disable-line
   (globalThis as any).__PIXI_RENDERER__ = app.renderer; // eslint-disable-line

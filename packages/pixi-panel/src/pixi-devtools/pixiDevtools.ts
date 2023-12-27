@@ -6,6 +6,7 @@ import type {
   IRenderer,
 } from "pixi.js";
 import type { Game, GameObjects, Scene, Scenes } from "phaser";
+import type { Camera } from "pixi3d";
 import type { UniversalNode } from "../types";
 
 type EventDetail = {
@@ -88,6 +89,20 @@ export default function pixiDevtools() {
         return patched;
       }
       return undefined;
+    },
+    camera(): Camera | undefined {
+      const camera = getGlobal("__PIXI_3D_CAMERA__");
+      if (camera) {
+        return camera;
+      }
+      
+      const renderer = this.renderer();
+      if (renderer) {
+        return "camera" in renderer.plugins ? renderer.plugins.camera : undefined;
+      }
+
+      return undefined;
+      
     },
     canvas(): ICanvas | HTMLCanvasElement | undefined {
       const renderer = this.renderer();
